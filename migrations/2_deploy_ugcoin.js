@@ -1,5 +1,5 @@
-const UGCoin = artifacts.require(`./UGCoin.sol`);
+const UGChain = artifacts.require(`./UGChain.sol`);
 
 module.exports = (deployer) => {
-	deployer.deploy(UGCoin);
+	deployer.deploy(UGChain);
 }

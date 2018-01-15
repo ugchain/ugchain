@@ -25,9 +25,9 @@ contract UGChain is Multiowned {
     }
 
     function freeze(uint256 _fee) payable external returns (bool success) {
-        require(_fee > 0 && _fee < msg.value)
+        require(_fee > 0 && _fee < msg.value);
         userFreeze[msg.sender].fee += _fee;
-        userFreeze[msg.sender].value += _value;
+        userFreeze[msg.sender].value += msg.value;
         Freeze(msg.sender, msg.value);
         return true;
     }
