@@ -9,6 +9,7 @@ contract UGChain is Multiowned {
     event ReturnToOwner(address ownerAddr, uint256 amount);
     event Deposit(address ownerAddr, uint256 amount);
     event HandleFreeze(address ownerAddr, uint256 value, uint256 fee);
+    event DefreezeByVote(bytes32 txId, address userAddr, uint256 amount);
 
     function UGChain() public Multiowned() {
 
@@ -34,12 +35,11 @@ contract UGChain is Multiowned {
 
     function handleFreeze(address _userAddr, address _ugcOwnerAddr) onlyOwner external {
         require(userFreeze[_userAddr].fee > 0);
-        uint256 value = userFreeze[_userAddr].value; //TODO event
+        uint256 value = userFreeze[_userAddr].value;
         uint256 fee = userFreeze[_userAddr].fee;
         if(_ugcOwnerAddr.send(fee)) {
             userFreeze[_userAddr].fee = 0;
             userFreeze[_userAddr].value = 0;
-            //userFreeze[_userAddr].ownerAddr = msg.sender; //TODO need to think more...
         }
         HandleFreeze(msg.sender, value, fee);
     }
@@ -51,6 +51,17 @@ contract UGChain is Multiowned {
             txHistory[_txId] = msg.sender;
             ownersLoan[msg.sender] += msg.value;
             Defreeze(msg.sender, msg.value);
+            return true;
+        }
+        return false;
+    }
+
+    function defreezeByVote(bytes32 _txId, address _userAddr, uint256 _amount) onlyManyOwners(keccak256(msg.data)) external returns (bool success) {
+        require(this.balance >= _amount);
+        require(txHistory[_txId] == 0);
+        if(_userAddr.send(_amount)) {
+            txHistory[_txId] = this;
+            DefreezeByVote(_txId, _userAddr, _amount);
             return true;
         }
         return false;
@@ -78,21 +89,12 @@ contract UGChain is Multiowned {
     struct FeeAndValue {
         uint256 fee;
         uint256 value;
-        //address ownerAddr;
     }
 
-    //string public name = "UG Chain";
     mapping (address => FeeAndValue) userFreeze;
     mapping (address => uint256) ownersLoan;
     mapping (address => uint256) ownersDeposit;   
     mapping (bytes32 => address) txHistory;
 
-    //TODO byte32???? string???? which one should be used ???
+    //TODO bytes32???? string???? which one should be used ???
 }
-
-
-
-
-
-
-
